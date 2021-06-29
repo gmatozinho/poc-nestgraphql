@@ -1,30 +1,57 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
-import { ItemsModule } from '../src/items/items.module';
-import { MongooseModule } from '@nestjs/mongoose';
+import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
 import { GraphQLModule } from '@nestjs/graphql';
-import { Item } from '../src/items/interfaces/item.interface';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { ConfigModule } from '@nestjs/config';
+import { ApiModule } from '../src/API/api.module';
+import { AuthorisationModule } from '../src/Authorisation/authorisation.module';
+import { DatabaseModule } from '../src/Database/database.module';
+import { DatabaseConnectionService } from '../src/Database/databaseConnection.service';
+import { DomainModule } from '../src/Domain/domain.module';
+import { PersistenceModule } from '../src/Persistence/persistence.module';
+import { UtilitiesModule } from '../src/Utils/utilities.module';
 
 describe('ItemsController (e2e)', () => {
   let app;
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
-        ItemsModule,
-        MongooseModule.forRoot('mongodb://localhost/nestgraphqltesting'),
+        ConfigModule.forRoot({
+          isGlobal: true,
+          /* envFilePath: `${process.env.NODE_ENV}.env`, */
+        }),
         GraphQLModule.forRoot({
+          playground: true,
           autoSchemaFile: 'schema.gql',
         }),
+        MongooseModule.forRootAsync({
+          imports: [DatabaseModule],
+          useFactory: (database: DatabaseConnectionService) => {
+            return <MongooseModuleOptions>{
+              uri: 'mongodb://localhost/nestgraphqltesting',
+              useNewUrlParser: true,
+              useUnifiedTopology: true,
+              useFindAndModify: false,
+            };
+          },
+          inject: [DatabaseConnectionService],
+        }),
+
+        PersistenceModule,
+        ApiModule,
+        UtilitiesModule,
+        DomainModule,
+        AuthorisationModule,
       ],
     }).compile();
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
-    await new Promise(resolve => app.listen(3535, resolve));
+    await new Promise((resolve) => app.listen(3535, resolve));
   });
   afterAll(async () => {
     await app.close();
