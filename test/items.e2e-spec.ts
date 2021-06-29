@@ -30,7 +30,7 @@ describe('ItemsController (e2e)', () => {
         }),
         MongooseModule.forRootAsync({
           imports: [DatabaseModule],
-          useFactory: (database: DatabaseConnectionService) => {
+          useFactory: () => {
             return <MongooseModuleOptions>{
               uri: 'mongodb://localhost/nestgraphqltesting',
               useNewUrlParser: true,
@@ -62,7 +62,7 @@ describe('ItemsController (e2e)', () => {
     price: 10,
     description: 'Description of this great item',
   };
-  let id: string = '';
+  let id = '';
   const updatedItem: any = {
     title: 'Great updated item',
     price: 20,

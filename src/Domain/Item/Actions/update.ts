@@ -8,7 +8,7 @@ const ItemRepo = () => Inject('ItemRepo');
 export class Update {
   constructor(@ItemRepo() private readonly itemRepository: IItemRepository) {}
 
-  public async execute(id: string, item: Partial<Item>):  Promise<Item> {
+  public async execute(id: string, item: Partial<Item>): Promise<Item> {
     return await this.itemRepository.update(id, item);
   }
 }
